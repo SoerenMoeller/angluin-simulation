@@ -1,0 +1,140 @@
+html {
+	font-family: 'Open Sans', sans-serif;
+    font-size: min(100%, 1.5vw, 1.5vh);
+    font-weight: 100;
+
+	background-color: #212121;
+	color: #EEEEEE;
+}
+
+main, header {
+	display: flex;
+	height: 100%;
+	padding: 2.5vh 2.5vw;
+}
+
+main {
+	height: 70vh;
+}
+
+header {
+	height: 25vh;
+}
+
+.pad {
+	padding-left: 1rem;
+}
+
+.center-content {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#filler {
+	height: 2.5vh;
+}
+
+.w-100 {
+	width: 100%;
+}
+
+.gap {
+	gap: 1rem;
+}
+
+text {
+	color: white;
+}
+
+.flex-space {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+
+.flex-row {
+	display: flex;
+	align-items: center;
+}
+
+.left {
+	padding-right: 2.5vw;
+	width: 35vw;
+}
+
+.right {
+	padding-left: 2.5vw;
+	width: 55vw;
+}
+
+.center {
+	background-color: #EEEEEE;
+	width: 1px;
+	height: 100%;
+}
+
+.black-box {
+	background-color: #121212;
+	width: 100%;
+	height: 10vh;
+	margin: 2.5vh 0;
+	border-radius: 5px;
+	padding: 1rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.button {
+	color: #000000;
+	background-color: #9B6AB8;
+	min-width: 6rem;
+	height: 1.8rem;
+	border-radius: 5px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.button:hover {
+	background-color: #8d48b5;
+	cursor: pointer;
+}
+
+.height-0-9 {
+	height: 90%;
+}
+
+input[type=text] {
+	width: 100%;
+	margin-left: 1rem;
+	border-radius: 5px;
+	background-color: #EEEEEE;
+}
+
+input[type=checkbox] {
+	margin-left: 1rem;
+}
+
+table, th, td:first-child {
+  	border: 1px solid #EEEEEE;
+}
+
+td {
+	border-right: 1px solid #EEEEEE;;
+}
+
+td, th {
+	padding: .3rem;
+}
+
+.border {
+	border-bottom: 1px solid #EEEEEE;
+}
+
+table {
+	border-collapse: collapse;
+	text-align: center;
+}

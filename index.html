@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angluin Simulation</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Spectral|Rubik">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="main.js"></script>
+</head>
+
+<body>
+<header>
+    <div class="left">
+        <div class="black-box">
+            <div class="flex-space" style="margin-bottom: 1rem;">
+                <p>Amount of membership queries</p>
+                <p>0</p>
+            </div>
+            <div class="flex-space">
+                <p>Amount of conjectures</p>
+                <p>0</p>
+            </div>
+        </div>
+
+        <div class="flex-space">
+            <div class="flex-row">
+                <p>Automatic answering</p>
+                <input type="checkbox" id="fname" name="fname">
+            </div>
+            <div class="button" id="reset-button">Reset</div>
+        </div>
+    </div>
+    <div class="center"></div>
+    <div class="right">
+        <div class="black-box">
+            <div class="flex-space" style="margin-bottom: 1rem;">
+                <p>Query</p>
+                <p>Not available</p>
+            </div>
+            <div class="flex-space">
+                <div class="button" id="answer-button">Answer</div>
+                <input type="text" id="fname" name="fname">
+            </div>
+        </div>
+
+
+        <div class="flex-row pad w-100">
+            <div class="button" id="step-button" style="margin-right: 6rem;">Step</div>
+            <div class="flex-row gap">
+                <div>Alphabet settings: </div>
+                <div class="button" id=alphabet-change-button>Change</div>
+                <input type="text" id="alphabet-input" name="alphabet-input" style="width: 10%;">
+                <div>Current: </div>
+                <div id="current-alphabet"></div>
+            </div> 
+        </div>
+    </div>
+</header>
+<div id=filler></div>
+<main>
+    <div class="left">
+        <p>Current observation table</p>
+        <div class="black-box height-0-9 center-content">
+            <table id="table">
+              <tr>
+                <th>&epsilon</th>
+                <th>Contact</th>
+                <th>Country</th>
+              </tr>
+              <tr class="border">
+                <td>Alfreds Futterkiste</td>
+                <td>Maria Anders</td>
+                <td>Germany</td>
+              </tr>
+              <tr>
+                <td>Centro comercial Moctezuma</td>
+                <td>Francisco Chang</td>
+                <td>Mexico</td>
+              </tr>
+            </table>
+        </div>
+    </div>
+    <div class="center"></div>
+    <div class="right">
+        <p>Latest DFA</p>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" class="black-box height-0-9"></svg>
+    </div>
+</main>
+</body>
+</html>
