@@ -1,12 +1,19 @@
 "use strict"
 
+const MESSAGES = {
+    enterValues: "Enter the table entries, before executing the next step"
+};
+
 const C = {
     epsilon: "ε"
 };
 
 const settings = {
-    alphabet: ["a", "b"]
+    alphabet: ["a", "b"],
+    clickedEntry: {}
 };
+
+const dfa = {};
 
 document.addEventListener("DOMContentLoaded", main);
 const observationTable = {
@@ -14,17 +21,6 @@ const observationTable = {
     E: [C.epsilon],
     incidence: {}
 };
-
-function initObservationTable() {
-    const extendedI = getIConcatSigma();
-    for (let row of extendedI) {
-        for (let col of observationTable.E) {
-            observationTable.incidence[row] = {[col]: -1};
-        }
-    }
-
-    // observationTable.incidence["ε"]["ε"] = 1;
-}
 
 function observationTableToHTML() {
     const table = document.getElementById("table");
@@ -38,7 +34,7 @@ function observationTableToHTML() {
         td = document.createElement("th");
         td.appendChild(document.createTextNode(val));
         tr.appendChild(td);
-    } 
+    }
 
     // fill (known) table body
     let count = 1;
@@ -56,25 +52,49 @@ function observationTableToHTML() {
             td.id = `${row}-${col}`;
 
             let text = "";
-            if (observationTable.incidence[row][col] != -1) {
+            if (observationTable.incidence[row] && col in observationTable.incidence[row]) {
                 text = observationTable.incidence[row][col];
+            } else {
+                td.addEventListener("click", (e) => showOverlay(row, col));
+                td.style.cursor = "pointer";
             }
 
             td.appendChild(document.createTextNode(text));
         }
 
         count += 1;
-    } 
+    }
+}
+
+function showOverlay(row, col) {
+    settings.clickedEntry = {
+        row: row,
+        col: col
+    };
+
+    document.getElementById("overlay").style.display = "flex";
+    const queryElement = document.getElementById("query-text");
+
+    let content;
+    if (row == C.epsilon) {
+        content = col;
+    } else if (col == C.epsilon) {
+        content = row;
+    } else {
+        content = `${row}${col}`;
+    }
+
+    queryElement.innerHTML = `${content} ∈ L`;
+}
+
+const merge = (a, b, predicate = (a, b) => a === b) => {
+    const c = [...a]; // copy to avoid side effects
+    // add all items from B to copy C if they're not already present
+    b.forEach((bItem) => (c.some((cItem) => predicate(bItem, cItem)) ? null : c.push(bItem)))
+    return c;
 }
 
 function getIConcatSigma() {
-    const merge = (a, b, predicate = (a, b) => a === b) => {
-        const c = [...a]; // copy to avoid side effects
-        // add all items from B to copy C if they're not already present
-        b.forEach((bItem) => (c.some((cItem) => predicate(bItem, cItem)) ? null : c.push(bItem)))
-        return c;
-    }
-
     const IconcatSigma = observationTable.I.map(s => concatSigma(s, settings.alphabet)).flat();
     return merge(observationTable.I, IconcatSigma)
 }
@@ -94,38 +114,187 @@ function concatSigma(s, S) {
 function main() {
     // find the svg to draw in
     initSVG();
-    dfaToGraph(dfa);
     build();
 
     const changeButton = document.getElementById("alphabet-change-button");
     const resetButton = document.getElementById("reset-button");
     const stepButton = document.getElementById("step-button");
     const answerButton = document.getElementById("answer-button");
+    const counterExampleButton = document.getElementById("counterexample-button");
+    const overlay = document.getElementById("overlay");
+    const counterExampleWrapper = document.getElementById("counterexample-wrapper");
+    const statusText = document.getElementById("status-text");
+
+    counterExampleWrapper.style.visibility = "hidden";
+    statusText.innerHTML = MESSAGES.enterValues;
+    stepButton.disabled = true;
 
     changeButton.addEventListener("click", e => changeAlphabet());
     resetButton.addEventListener("click", e => resetAlgorithm());
     stepButton.addEventListener("click", e => applyStep());
     answerButton.addEventListener("click", e => answer());
-    console.log(stepButton);
-    stepButton.disabled = true;
+    overlay.addEventListener("click", overlayClose);
+    counterExampleButton.addEventListener("click", e => addCounterExample());
 
     document.getElementById("current-alphabet").innerHTML = settings.alphabet.toString();
-    initObservationTable();
-
-
-
-
     observationTableToHTML();
 }
 
-function answer() {
+function addCounterExample() {
+    const counterExample = document.getElementById("counterexample-input").value;
+    document.getElementById("counterexample-wrapper").style.visibility = "hidden";
+    let prefixes = [];
+    for (let i = 1; i <= counterExample.length; i++) {
+        prefixes.push(counterExample.slice(0, i));
+    }
 
+    observationTable.I = merge(observationTable.I, prefixes);
+    observationTableToHTML();
+    checkClosedAndConsistent();
+}
+
+function overlayClose(event) {
+    if (!event.target.id || event.target.id !== "overlay") return;
+
+    document.getElementById("overlay").style.display = "none";
+}
+
+function answer() {
+    const answer = document.getElementById("answer-box");
+    if (observationTable.incidence[settings.clickedEntry.row]) {
+        observationTable.incidence[settings.clickedEntry.row][settings.clickedEntry.col] = answer.checked ? 1 : 0
+    } else {
+        observationTable.incidence[settings.clickedEntry.row] = {[settings.clickedEntry.col]: answer.checked ? 1 : 0};
+    }
+
+    document.getElementById("overlay").style.display = "none";
+    observationTableToHTML();
+
+
+    if (!unknownEntryExists()) {
+        checkClosedAndConsistent();
+        document.getElementById("step-button").disabled = false;
+    }
+}
+
+function observationTableToDfa() {
+    dfa.start = getRow(C.epsilon);
+    dfa.end = unique(observationTable.I.filter(e => observationTable.incidence[e][C.epsilon] == 1).map(e => getRow(e)));
+    dfa.states = unique(observationTable.I.map(e => getRow(e)));
+
+    const transitions = [];
+    for (let s of observationTable.I) {
+        const from = getRow(s);
+        if (transitions.filter(e => e.from == from).length > 0) continue;
+
+        for (let a of settings.alphabet) {
+            let to;
+            if (s == C.epsilon) {
+                to = getRow(a);
+            } else {
+                to = getRow(s + a);
+            }
+
+            const entry = transitions.filter(e => e.from == from && e.to == to);
+            if (entry.length > 0) {
+                entry[0].with = entry[0].with.concat([a]);
+            } else {
+                transitions.push({
+                    from: from,
+                    to: to,
+                    with: [a]
+                });
+            }
+        }
+    }
+    dfa.transitions = transitions;
+}
+
+function unique(array) {
+    return [...new Set(array)];
+}
+
+function checkClosedAndConsistent() {
+    const statusText = document.getElementById("status-text");
+    const closedResult = checkClosed();
+    const consistentResult = checkConsistent();
+
+    if (unknownEntryExists()) {
+        statusText.innerHTML = MESSAGES.enterValues;
+        return;
+    }
+
+    if (!closedResult.answer) {
+        statusText.innerHTML = `Table is not closed, because ∄s ∈ I: row(s) = row(${closedResult.example}). Add '${closedResult.example}' and prefixes to I to fix this.`;
+        return;
+    }
+
+    if (!consistentResult.answer) {
+        statusText.innerHTML = `Table is not consistent, because row(${consistentResult.reasons[0]}) = row(${consistentResult.reasons[1]}) but row(${consistentResult.reasons[0]}•${consistentResult.example[0]}•${consistentResult.example[1]}) ≠ row(${consistentResult.reasons[1]}•${consistentResult.example[0]}•${consistentResult.example[1]}. Add ${consistentResult.example[0]}•${consistentResult.example[1]} and suffixes to fix)`;
+        return;
+    }
+
+    statusText.innerHTML = "Check the DFA!";
+    observationTableToDfa();
+    dfaToGraph();
+    build();
+    document.getElementById("counterexample-wrapper").style.visibility = "visible";
+}
+
+function checkConsistent() {
+    for (let s1 of observationTable.I) {
+        for (let s2 of observationTable.I) {
+            if (getRow(s1) != getRow(s2)) continue;
+
+            for (let a of settings.alphabet) {
+                for (let e of observationTable.E) {
+                    let concat1 = `${s1}${a}`;
+                    let concat2 = `${s2}${a}`;
+                    if (s1 == C.epsilon) {
+                        concat1 = a;
+                    }
+                    if (s2 == C.epsilon) {
+                        concat2 = a;
+                    }
+                    if (observationTable.incidence[concat1] && observationTable.incidence[concat2] &&
+                        observationTable.incidence[concat1][e] != observationTable.incidence[concat2][e]) {
+                        return {
+                            answer: false,
+                            example: [a, e],
+                            reasons: [s1, s2]
+                        };
+                    }
+                }
+            }
+        }
+    }
+
+    return {
+        answer: true
+    };
+}
+
+function checkClosed() {
+    const states = observationTable.I.map(e => getRow(e));
+
+    for (let s of getIConcatSigma()) {
+        if (!states.includes(getRow(s))) {
+            return {
+                answer: false,
+                example: s
+            };
+        }
+    }
+
+    return {
+        answer: true
+    };
 }
 
 function unknownEntryExists() {
     for (let row of getIConcatSigma()) {
         for (let col of observationTable.E) {
-            if (observationTable.incidence[row][col] == -1) {
+            if (!(observationTable.incidence[row] && col in observationTable.incidence[row])) {
                 return true;
             }
         }
@@ -133,8 +302,50 @@ function unknownEntryExists() {
     return false;
 }
 
+function getRow(elem) {
+    const row = observationTable.incidence[elem];
+    let result = "";
+
+    for (let key in row) {
+        result += row[key].toString();
+    }
+
+    return Number(result);
+}
+
 function applyStep() {
     if (unknownEntryExists()) return;
+
+    const closedResult = checkClosed();
+    const consistentResult = checkConsistent();
+    if (!closedResult.answer) {
+        let prefixes = [];
+        for (let i = 1; i <= closedResult.example.length; i++) {
+            prefixes.push(closedResult.example.slice(0, i));
+        }
+
+        observationTable.I = merge(observationTable.I, prefixes);
+        observationTableToHTML();
+    } else if (!consistentResult.answer) {
+        let e = consistentResult.example[0] + consistentResult.example[1];
+        if (consistentResult.example[1] == C.epsilon) {
+            e = consistentResult.example[0];
+        }
+        let suffixes = [];
+        for (let i = 0; i < e.length; i++) {
+            suffixes.push(e.slice(i, e.length));
+        }
+
+        observationTable.E = merge(observationTable.E, suffixes);
+        observationTableToHTML();
+    }
+
+    checkClosedAndConsistent();
+    if (unknownEntryExists()) {
+        document.getElementById("step-button").disabled = true;
+    }
+
+
 }
 
 function resetAlgorithm() {
@@ -150,40 +361,7 @@ function changeAlphabet() {
     settings.alphabet = alphabetInput.value.split(",").map((x) => x.trim());
 }
 
-let dfa = {
-    states: [0, 1, 2],
-    start: 0,
-    end: [1, 2],
-    transitions: [
-        {
-            from: 0,
-            to: 1,
-            with: ["a"]
-        }, 
-        {
-            from: 0,
-            to: 0,
-            with: ["b"]
-        }, 
-        {
-            from: 1,
-            to: 2,
-            with: ["a", "b"]
-        }, 
-        {
-            from: 2,
-            to: 0,
-            with: ["a"]
-        }, 
-        {
-            from: 2,
-            to: 1,
-            with: ["b"]
-        }
-    ]
-}
-
-function dfaToGraph(dfa) {
+function dfaToGraph() {
     graph = {}
     let x = 20
     let y = 20
@@ -453,7 +631,7 @@ function getPathElemByIds(fromId, toId) {
 function getEdgeDescription(fromId, toId) {
     const edge = getEdge(fromId, toId);
 
-    return edge.desc; 
+    return edge.desc;
 }
 
 function reselect() {
@@ -514,7 +692,7 @@ function initGrid() {
 }
 
 
-// =============== html build helpers =============== // 
+// =============== html build helpers =============== //
 function createTextNode(parent, position, text, draggable) {
     const parsedText = text;
 
@@ -530,7 +708,7 @@ function createTextNode(parent, position, text, draggable) {
         configuration.class = CONSTANTS.draggable;
     }
 
-    // check starting position of the text 
+    // check starting position of the text
     const lines = parsedText.length;
     const distance = SIZE.text + SIZE.subText - 1;
     let offset = position.y - Math.floor(lines / 2) * distance;
@@ -540,7 +718,7 @@ function createTextNode(parent, position, text, draggable) {
 
     const textNode = createSVGElement(CONSTANTS.text, configuration);
     for (let parsedLine of parsedText) {
-        
+
         const textLine = createSVGElement(CONSTANTS.tspan, {});
         offset += distance;
         textLine.textContent = parsedLine;
@@ -729,7 +907,7 @@ function getDirectionVector(vectorA, vectorB) {
 function getDistanceToLine(point, direction, pointOnLine) {
     const dot = getDotProduct({ x: point.x - pointOnLine.x, y: point.y - pointOnLine.y }, direction);
     const length = getLength(direction);
-    
+
     return -dot / length;
 }
 
@@ -881,7 +1059,7 @@ function dragEdge(mouse) {
     const middle = getMiddleOfVector(startNode.coords, endNode.coords);
     const normalVector = getNormalVector(startNode.coords, endNode.coords);
 
-    // determine distance to mouse 
+    // determine distance to mouse
     const directionVector = getDirectionVector(startNode.coords, endNode.coords);
     let dist = getDistanceToLine(mouse, directionVector, startNode.coords);
 
@@ -936,7 +1114,7 @@ function dragStartEdge(mouse) {
 function getNodeDescription(nodeId) {
     const node = getNode(nodeId);
 
-    return node.desc; 
+    return node.desc;
 }
 
 function dragNode(mouse) {
@@ -1008,7 +1186,7 @@ function dragNode(mouse) {
         // get the svg path
         const path = getPathElemByIds(id, id);
 
-        // correct the self edge 
+        // correct the self edge
         const update = {
             d: dValue,
             transform: `rotate(${selfPath.angle}, ${coords.x}, ${coords.y})`
@@ -1042,7 +1220,7 @@ function mouseDown(evt) {
     while (elem.tagName === CONSTANTS.tspan) {
         elem = elem.parentNode;
     }
-    
+
     const prefix = getIdPrefix(elem.parentNode);
 
     // cancel selection if the background is clicked
@@ -1180,7 +1358,7 @@ function correctSubTexts(desc, coords, textNode) {
     if (lines % 2 === 0) {
         offset += distance / 2;
     }
-    
+
     for (let child of textNode.childNodes) {
         updateAttributes(child, { x: coords.x, y: offset });
         offset += distance;
@@ -1229,7 +1407,7 @@ function setPathColor(fromId, toId, color=COLOR.white) {
     const node = document.getElementById(selector);
 
     if (!node) return;
-    
+
     let marker = (color == COLOR.white) ? CONSTANTS.arrow : CONSTANTS.arrowSelected;
     if (fromId === toId) {
         marker = (color == COLOR.white) ? CONSTANTS.selfarrow : CONSTANTS.selfarrowSelected;

@@ -33,32 +33,32 @@
                 <p>Automatic answering</p>
                 <input type="checkbox" id="fname" name="fname">
             </div>
-            <div class="button" id="reset-button">Reset</div>
+            <button class="button" id="reset-button">Reset</button>
         </div>
     </div>
     <div class="center"></div>
     <div class="right">
         <div class="black-box">
             <div class="flex-space" style="margin-bottom: 1rem;">
-                <p>Query</p>
-                <p>Not available</p>
+                <p>Status</p>
+                <p id="status-text">Not available</p>
             </div>
-            <div class="flex-space">
-                <div class="button" id="answer-button">Answer</div>
-                <input type="text" id="fname" name="fname">
+            <div class="flex-space" id="counterexample-wrapper">
+                <button class="button" id="counterexample-button">Answer</button>
+                <input type="text" id="counterexample-input" name="counterexample-input">
             </div>
         </div>
 
 
         <div class="flex-row pad w-100">
-            <div class="button" id="step-button" style="margin-right: 6rem;">Step</div>
+            <button class="button" id="step-button" style="margin-right: 6rem;">Step</button>
             <div class="flex-row gap">
                 <div>Alphabet settings: </div>
-                <div class="button" id=alphabet-change-button>Change</div>
+                <button class="button" id=alphabet-change-button>Change</button>
                 <input type="text" id="alphabet-input" name="alphabet-input" style="width: 10%;">
                 <div>Current: </div>
                 <div id="current-alphabet"></div>
-            </div> 
+            </div>
         </div>
     </div>
 </header>
@@ -92,5 +92,17 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" class="black-box height-0-9"></svg>
     </div>
 </main>
+<div id="overlay">
+    <div class="black-box w-20">
+        <div class="flex-space" style="margin-bottom: 1rem;">
+            <p>Query</p>
+            <p id="query-text">Not available</p>
+        </div>
+        <div class="flex-space">
+            <button class="button" id="answer-button">Answer</button>
+            <input type="checkbox" id="answer-box" name="answer-box">
+        </div>
+    </div>
+  </div>
 </body>
 </html>
