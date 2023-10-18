@@ -8,10 +8,10 @@
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Spectral|Rubik">
     <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans">
-    <link rel="stylesheet" href="reset.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/reset.css">
+    <link rel="stylesheet" href="styles/style.css">
 
-    <script src="main.js"></script>
+    <script src="main.js" type="module"></script>
 </head>
 
 <body>
@@ -20,28 +20,25 @@
         <div class="black-box">
             <div class="flex-space" style="margin-bottom: 1rem;">
                 <p>Amount of membership queries</p>
-                <p>0</p>
+                <p id="membership-amount">0</p>
             </div>
             <div class="flex-space">
                 <p>Amount of conjectures</p>
-                <p>0</p>
+                <p id="conjecture-amount">0</p>
             </div>
         </div>
 
         <div class="flex-space">
-            <div class="flex-row">
-                <p>Automatic answering</p>
-                <input type="checkbox" id="fname" name="fname">
-            </div>
             <button class="button" id="reset-button">Reset</button>
         </div>
     </div>
     <div class="center"></div>
     <div class="right">
         <div class="black-box">
-            <div class="flex-space" style="margin-bottom: 1rem;">
+            <div class="flex-space gap" style="margin-bottom: 1rem;">
                 <p>Status</p>
                 <p id="status-text">Not available</p>
+                <button class="button" id="step-button">Apply</button>
             </div>
             <div class="flex-space" id="counterexample-wrapper">
                 <button class="button" id="counterexample-button">Answer</button>
@@ -49,23 +46,19 @@
             </div>
         </div>
 
-
-        <div class="flex-row pad w-100">
-            <button class="button" id="step-button" style="margin-right: 6rem;">Step</button>
-            <div class="flex-row gap">
-                <div>Alphabet settings: </div>
-                <button class="button" id=alphabet-change-button>Change</button>
-                <input type="text" id="alphabet-input" name="alphabet-input" style="width: 10%;">
-                <div>Current: </div>
-                <div id="current-alphabet"></div>
-            </div>
+        <div class="flex-row">
+            <div style="margin-right: 1rem;">Alphabet:</div>
+            <div id="current-alphabet"></div>
         </div>
     </div>
 </header>
 <div id=filler></div>
 <main>
     <div class="left">
-        <p>Current observation table</p>
+        <div class="flex-space">
+            <p>Observation table</p>
+            <div id="query-text"></div>
+        </div>
         <div class="black-box height-0-9 center-content">
             <table id="table">
               <tr>
@@ -92,17 +85,5 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" class="black-box height-0-9"></svg>
     </div>
 </main>
-<div id="overlay">
-    <div class="black-box w-20">
-        <div class="flex-space" style="margin-bottom: 1rem;">
-            <p>Query</p>
-            <p id="query-text">Not available</p>
-        </div>
-        <div class="flex-space">
-            <button class="button" id="answer-button">Answer</button>
-            <input type="checkbox" id="answer-box" name="answer-box">
-        </div>
-    </div>
-  </div>
 </body>
 </html>

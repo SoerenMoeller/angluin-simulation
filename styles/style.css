@@ -1,15 +1,13 @@
 html {
 	font-family: 'Open Sans', sans-serif;
-    font-size: min(100%, 1.5vw, 1.5vh);
-    font-weight: 100;
+    font-size: min(200%, 2vw, 2vh);
+    font-weight: 200;
 
-	background-color: #212121;
-	color: #EEEEEE;
+	color: black;
 }
 
 main, header {
 	display: flex;
-	height: 100%;
 	padding: 2.5vh 2.5vw;
 }
 
@@ -62,7 +60,7 @@ header {
 }
 
 text {
-	color: white;
+	color: black;
 }
 
 .flex-space {
@@ -88,15 +86,14 @@ text {
 }
 
 .center {
-	background-color: #EEEEEE;
+	background-color: black;
 	width: 1px;
 	height: 100%;
 }
 
 .black-box {
-	background-color: #121212;
+	background-color: #e6e6e6;
 	width: 100%;
-	height: 10vh;
 	margin: 2.5vh 0;
 	border-radius: 5px;
 	padding: 1rem;
@@ -136,11 +133,11 @@ input[type=checkbox] {
 }
 
 table, th, td:first-child {
-  	border: 1px solid #EEEEEE;
+  	border: 1px solid black;
 }
 
 td {
-	border-right: 1px solid #EEEEEE;;
+	border-right: 1px solid black;
 }
 
 td, th {
@@ -148,10 +145,11 @@ td, th {
 }
 
 .border {
-	border-bottom: 1px solid #EEEEEE;
+	border-bottom: 1px solid black;
 }
 
 table {
 	border-collapse: collapse;
 	text-align: center;
+	font-size: 1.1rem;
 }
