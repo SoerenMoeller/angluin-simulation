@@ -1,7 +1,8 @@
 "use strict"
 
 import { initSVG, dfaToGraph } from "./scripts/dfa.js"; 
-import { build, reset } from "./scripts/view.js"
+import { build, reset } from "./scripts/view.js";
+import { config } from "./config.js";
 
 const MESSAGES = {
     enterValues: "Enter the table entries before executing the next step"
@@ -11,24 +12,28 @@ const C = {
     epsilon: "ε"
 };
 
+// basic settings
 const settings = {
-    alphabet: ["a", "b"],
+    alphabet: config.alphabet,
     clickedEntry: {},
     entrySelected: false,
     membershipAmount: 0,
     conjecturesAmount: 0
 };
 
+// currently derived dfa
 const dfa = {};
 
-document.addEventListener("DOMContentLoaded", main);
+// current observation table
 const observationTable = {
     I: [C.epsilon],
     E: [C.epsilon],
-    T: {},
-    incidence: {}
+    T: {},          // contains if w is in language
+    incidence: {}   // is the visualized table with rows and columns, built using T
 };
 
+
+document.addEventListener("DOMContentLoaded", main);
 function main() {
     // find the svg to draw in
     initSVG();
